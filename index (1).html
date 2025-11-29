@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Health Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+--primary:#0476ff;
+--dark:#050b1a;
+--light:#ffffff;
+--accent:#00b894;
+--muted:#59608b;
+--bgsoft:#f3f7ff;
+--radius-xl:36px;
+--radius-lg:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",system-ui}
+body{background:linear-gradient(135deg,#5cc5c5,#1d8f8f)}
+.hidden{display:none}
+
+/* LOGIN */
+#loginPage{height:100vh;display:flex;justify-content:center;align-items:center}
+.container{width:850px;height:480px;display:flex;background:white;border-radius:22px}
+.form{width:50%;padding:40px}
+.panel{width:50%;background:#1d8f8f;color:white;display:flex;align-items:center;justify-content:center;flex-direction:column}
+input{width:100%;padding:11px;margin:6px;border-radius:8px;border:1px solid #ccc}
+button{width:100%;padding:11px;border:none;border-radius:8px;background:#1d8f8f;color:white;font-weight:600}
+.switch-btn{background:white;color:#1d8f8f;margin-top:6px}
+
+/* APP */
+#app{display:none;background:#f4f7ff;min-height:100vh}
+header{
+background:#050b1a;color:white;
+padding:1rem;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+position:sticky;
+top:0;
+z-index:999;
+}
+.site-title{
+font-size:1.7rem;
+font-weight:800;
+letter-spacing:.8px;
+}
+.user-sub{
+font-size:0.75rem;
+margin-top:4px;
+color:#cfe3ff;
+}
+
+.access{background:#02102e;padding:.8rem;display:flex;gap:.7rem}
+a{color:white;padding:.4rem 1rem;border-radius:999px;background:#071836;cursor:pointer;text-decoration:none}
+.active{background:#0476ff}
+main{padding:1rem}
+
+/* SECTION TITLES */
+.section-title{
+display:inline-block;
+background:#02102e;color:white;
+padding:6px 16px;border-radius:999px;
+font-size:.85rem;font-weight:600;
+margin:28px 0 8px 4px;
+}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem}
+.card{background:white;padding:2.2rem;border-radius:20px;box-shadow:0 14px 25px rgba(0,0,0,.1);cursor:pointer}
+
+/* MODALS */
+.modal{position:fixed;inset:0;display:none;background:#0008;justify-content:center;align-items:center;z-index:2000}
+.modal.active{display:flex}
+.box{background:white;padding:1.6rem;border-radius:22px;width:400px;max-height:90vh;overflow:auto}
+.close-btn{background:red;margin-top:8px}
+
+/* SMART TRACKING */
+.smart-wrap{display:flex;gap:1rem}
+.med-list{width:40%;background:#eef4ff;padding:1rem;border-radius:14px}
+.med-item{margin-top:6px;background:white;padding:6px;border-radius:7px}
+.add-form{width:60%}
+
+/* CALENDAR */
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{background:#e8f0ff;padding:8px;border-radius:6px;text-align:center;cursor:pointer}
+.taken{background:#00b894;color:white}
+
+/* ALARMS */
+.alarmItem{background:#eef4ff;padding:6px;border-radius:7px;margin-top:5px}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN PAGE (unchanged) -->
+<div id="loginPage">
+<div class="container">
+
+<div class="form" id="loginForm">
+<h2>Login</h2>
+<input id="lemail" placeholder="Email">
+<input id="lpass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<button class="switch-btn" onclick="toggle()">Sign Up</button>
+</div>
+
+<div class="form hidden" id="signupForm">
+<h2>Sign Up</h2>
+<input id="sname" placeholder="Name">
+<input id="semail" placeholder="Email">
+<input id="spass" type="password" placeholder="Password">
+<button onclick="signup()">Create Account</button>
+<button class="switch-btn" onclick="toggle()">Back to Login</button>
+</div>
+
+<div class="panel">
+<h2>Health Assistant</h2>
+<p>Your personal medicine partner</p>
+</div>
+
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<header>
+<div class="site-title">Health Assistant</div>
+<div class="user-sub" id="userInfo"></div>
+<div class="user-sub" id="userEmail"></div>
+</header>
+
+<div class="access">
+<a onclick="goto('features')" class="active">Features</a>
+<a onclick="goto('history')">History</a>
+<a onclick="goto('care')">Caregiver</a>
+<a onclick="goto('profile')">Account</a>
+</div>
+
+<main>
+
+<div class="section-title">Smart Care</div>
+<div id="features" class="grid">
+<div class="card" onclick="openMed()">💊 Smart Tracking</div>
+<div class="card" onclick="modal('voice')">🔔 Voice & SMS Alerts</div>
+</div>
+
+<div class="section-title">History & Medicines</div>
+<div id="history" class="grid">
+<div class="card" onclick="modal('calendarModal')">📅 Medicine Calendar</div>
+<div class="card" onclick="modal('refill')">🛡 Refill Manager</div>
+</div>
+
+<div class="section-title">Care Access</div>
+<div id="care" class="grid">
+<div class="card" onclick="modal('careModal')">👥 Caregivers</div>
+<div class="card" onclick="modal('vitals')">❤ Health Vitals</div>
+</div>
+
+<div class="section-title">Account</div>
+<div id="profile" class="grid">
+<div class="card" onclick="modal('profileModal')">👤 My Profile</div>
+<div class="card" onclick="logout()">🚪 Logout</div>
+<div class="card" onclick="deleteAccount()">❌ Delete Account</div>
+</div>
+
+</main>
+</div>
+
+<!-- Smart Tracking -->
+<div class="modal" id="med"><div class="box">
+<h3>Smart Tracking</h3>
+<div class="smart-wrap">
+<div class="med-list">
+<h4>Medicine List</h4>
+<div id="medSide"></div>
+</div>
+<div class="add-form">
+<input id="medname" placeholder="Medicine">
+<input id="dose" placeholder="Dose">
+<button onclick="addMed()">Add</button>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div>
+</div>
+</div></div>
+
+<!-- Voice Alerts -->
+<div class="modal" id="voice"><div class="box">
+<h3>Voice & SMS Reminder</h3>
+<input type="time" id="alarmTime">
+<input id="alarmText" placeholder="Message">
+<button onclick="setAlarm()">Set Reminder</button>
+<div id="alarms"></div>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<!-- Calendar -->
+<div class="modal" id="calendarModal"><div class="box">
+<h3>Calendar</h3>
+<div id="calendar" class="calendar"></div>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<!-- Refill -->
+<div class="modal" id="refill"><div class="box">
+<h3>Refill Manager</h3>
+<input id="r_med" placeholder="Medicine name">
+<input id="total" placeholder="Total pills">
+<input id="daily" placeholder="Pills per day">
+<button onclick="addRefill()">Add</button>
+<div id="refillList"></div>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<!-- Caregivers -->
+<div class="modal" id="careModal"><div class="box">
+<h3>Caregivers</h3>
+<select id="city">
+<option disabled selected>Select city</option>
+<option>Hyderabad</option>
+<option>Bangalore</option>
+<option>Chennai</option>
+<option>Pune</option>
+</select>
+<div id="cityCount"></div>
+<div id="cList"></div>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<!-- Vitals -->
+<div class="modal" id="vitals"><div class="box">
+<h3>Vitals</h3>
+<input id="bp" placeholder="BP">
+<input id="heart" placeholder="Heart">
+<input id="sugar" placeholder="Sugar">
+<button onclick="saveVitals()">Save</button>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<!-- Profile -->
+<div class="modal" id="profileModal"><div class="box">
+<h3>Profile</h3>
+<div id="profileBox"></div>
+<button class="close-btn" onclick="closeModal()">Close</button>
+</div></div>
+
+<script>
+// Hash
+const hash = t => btoa(t.split("").reverse().join(""))
+
+function toggle(){loginForm.classList.toggle("hidden");signupForm.classList.toggle("hidden")}
+
+function signup(){
+let u=JSON.parse(localStorage.getItem("users"))||[];
+if(u.find(x=>x.email===semail.value)) return alert("Account exists");
+u.push({name:sname.value,email:semail.value,pass:hash(spass.value)});
+localStorage.setItem("users",JSON.stringify(u));
+alert("Signup Success"); toggle();
+}
+
+function login(){
+let u=JSON.parse(localStorage.getItem("users"))||[];
+let S=u.find(x=>x.email===lemail.value && x.pass===hash(lpass.value));
+if(!S) return alert("Invalid Login");
+localStorage.setItem("session",JSON.stringify(S));
+showApp();
+}
+
+function showApp(){
+loginPage.style.display="none";
+app.style.display="block";
+let s=JSON.parse(localStorage.getItem("session"));
+userInfo.innerText="Welcome, "+s.name;
+userEmail.innerText=s.email;
+profileBox.innerHTML=`Name: ${s.name}<br>Email: ${s.email}`;
+document.body.style.background="#f4f7ff"
+}
+if(localStorage.getItem("session")) showApp();
+
+function logout(){
+if(confirm("Logout?")){
+localStorage.removeItem("session");
+location.reload();
+}
+}
+
+// Nav
+function goto(id){
+document.querySelectorAll(".access a").forEach(x=>x.classList.remove("active"));
+event.target.classList.add("active");
+document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+// Modals
+function modal(id){document.getElementById(id).classList.add("active")}
+function closeModal(){document.querySelectorAll(".modal").forEach(m=>m.classList.remove("active"))}
+
+/* Smart Tracking */
+let meds=[]
+function openMed(){modal("med");renderMed()}
+function addMed(){
+if(!medname.value||!dose.value)return;
+meds.push(`${medname.value} (${dose.value})`);
+medname.value="";dose.value="";
+renderMed();
+}
+function renderMed(){
+medSide.innerHTML=meds.map(x=>`<div class="med-item">${x}</div>`).join("");
+}
+
+/* Voice */
+function speakText(t){
+let u=new SpeechSynthesisUtterance(t);
+u.rate=0.85;speechSynthesis.speak(u);
+}
+function setAlarm(){
+let [h,m]=alarmTime.value.split(":");
+let now=new Date(),t=new Date();
+t.setHours(h,m,0,0); if(t<=now) t.setDate(t.getDate()+1);
+let delay = t-now;
+
+alarms.innerHTML+=`<div class="alarmItem">⏰ ${alarmText.value}</div>`;
+
+setTimeout(()=>{
+let msg="Medicine reminder. "+alarmText.value;
+speakText(msg);
+alert(msg);
+},delay);
+}
+
+/* Calendar */
+for(let i=1;i<=30;i++){
+let d=document.createElement("div");
+d.className="day";
+d.innerText=i;
+d.onclick=()=>d.classList.toggle("taken");
+calendar.appendChild(d);
+}
+
+/* Refill */
+let ref=[]
+function addRefill(){
+let m=r_med.value,t=+total.value,p=+daily.value;
+if(!m||!t||!p)return alert("Fill all");
+let days=Math.floor(t/p);
+ref.push(`${m} → ${days} days left`);
+renderRef();
+let oneDay=86400000;
+setTimeout(()=>alert(`⚠ ${m} ends tomorrow`),(days-1)*oneDay);
+setTimeout(()=>alert(`❗ ${m} finished`),days*oneDay);
+}
+function renderRef(){refillList.innerHTML=ref.map(x=>`<div class="med-item">${x}</div>`).join("")}
+
+/* Caregiver */
+const care={Hyderabad:["Dr Rao","Nurse Anita"],Bangalore:["Dr Mehta"],Chennai:["Dr Kumar"],Pune:["Care Plus"]};
+city.onchange=function(){
+let l=care[this.value]||[];
+cityCount.innerText=l.length+" caregivers available";
+cList.innerHTML=l.join("<br>");
+}
+
+function saveVitals(){alert("Vitals saved")}
+
+/* Delete */
+function deleteAccount(){
+if(confirm("Delete account?")){
+let s=JSON.parse(localStorage.getItem("session"));
+let u=JSON.parse(localStorage.getItem("users")).filter(x=>x.email!==s.email);
+localStorage.setItem("users",JSON.stringify(u));
+logout();
+}
+}
+
+</script>
+</body>
+</html>
+
